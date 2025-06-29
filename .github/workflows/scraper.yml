@@ -1,4 +1,4 @@
-name: BodySpec Appointment Scraper
+name: Scraper
 
 on:
   schedule:
