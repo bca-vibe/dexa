@@ -9,6 +9,7 @@ Original file is located at
 
 # Setup
 import requests
+import os
 import datetime
 import pandas as pd
 from pytz import timezone
@@ -168,15 +169,8 @@ records = df[[
     "can_reserve", "appointment_time", "scraped_at"
 ]].to_dict(orient="records")
 
-#TODO: Delete
-from pprint import pprint
-pprint(records[0])
-print(type(records[0]['appointment_time']))
-print(type(records[0]['scraped_at']))
-
 # === Insert into Supabase ===
 from supabase import create_client, Client
-import os
 
 url = os.environ["SUPABASE_URL"]
 key = os.environ["SUPABASE_KEY"]
