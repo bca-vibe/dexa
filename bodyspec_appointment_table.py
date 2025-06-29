@@ -13,6 +13,7 @@ import datetime
 import pandas as pd
 from pytz import timezone
 from zoneinfo import ZoneInfo
+import numpy as np
 
 # === Constants ===
 URL = "https://www.bodyspec.com/graphql"
@@ -25,7 +26,7 @@ start_date = datetime.date.today().isoformat()
 
 # === Collect all appointments here ===
 all_rows = []
-scrape_time = datetime.utcnow().isoformat()
+scrape_time = datetime.datetime.utcnow().isoformat()
 
 # === Loop over regions ===
 for region in REGIONS:
@@ -103,8 +104,8 @@ for region in REGIONS:
         for edge in events:
             node = edge["node"]
             loc = node["location"]
-            lat = loc["details"]["coords"]["lat"]
-            lng = loc["details"]["coords"]["lng"]
+            #lat = loc["details"]["coords"]["lat"]
+            #lng = loc["details"]["coords"]["lng"]
             slug = loc["details"]["slug"]
             is_store = loc["details"]["isStore"]
             region_name = loc["regions"]["primary"]
@@ -114,8 +115,8 @@ for region in REGIONS:
                 all_rows.append({
                     "appointment_id": appt["id"],
                     "location": slug,
-                    "latitude": lat,
-                    "longitude": lng,
+                    #"latitude": lat,
+                    #"longitude": lng,
                     "region": region_name,
                     "is_store": is_store,
                     "unix": appt_details["unix"],
@@ -142,9 +143,36 @@ def convert_to_appointment_time(row):
 
 df["appointment_time"] = df.apply(convert_to_appointment_time, axis=1)
 
-# === Drop any rows missing required data before sending to Supabase === #
-required_cols = ["appointment_id", "location", "region", "is_store", "can_reserve", "appointment_time", "latitude", "longitude", "scraped_at"]
-df = df.dropna(subset=required_cols)
+# === Final output ===
+print("\n✅ Example results:")
+print(df.head())
+print(f"\n📦 Total appointments pulled: {len(df)}")
+print(f"📍 Unique locations: {df['location'].nunique()}")
+
+print(df.dtypes)
+
+# === Convert data to what Supabase is expecting === #
+# Convert datetime columns to ISO 8601 strings
+df["appointment_time"] = pd.to_datetime(df["appointment_time"], errors="coerce")
+df["scraped_at"] = pd.to_datetime(df["scraped_at"], errors="coerce")
+
+df["appointment_time"] = df["appointment_time"].apply(lambda x: x.isoformat() if pd.notnull(x) else None)
+df["scraped_at"] = df["scraped_at"].apply(lambda x: x.isoformat() if pd.notnull(x) else None)
+
+# Replace any NaNs with None
+df = df.replace({np.nan: None})
+
+# Convert to list of dicts
+records = df[[
+    "appointment_id", "location", "region", "is_store",
+    "can_reserve", "appointment_time", "scraped_at"
+]].to_dict(orient="records")
+
+#TODO: Delete
+from pprint import pprint
+pprint(records[0])
+print(type(records[0]['appointment_time']))
+print(type(records[0]['scraped_at']))
 
 # === Insert into Supabase ===
 from supabase import create_client, Client
@@ -154,20 +182,10 @@ url = os.environ["SUPABASE_URL"]
 key = os.environ["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
-
-# Choose columns to insert
-records = df[[
-    "appointment_id", "location", "region", "is_store",
-    "can_reserve", "appointment_time", "latitude", "longitude", "scraped_at"
-]].to_dict(orient="records")
-
 try:
-    response = supabase.table("appointments").insert(records).execute()
-
-    if response.get("status_code", 200) >= 300:
-        print("⚠️ Error inserting records:", response)
-    else:
-        print("✅ Successfully inserted records.")
+    response = supabase.table("Appointments").insert(records).execute()
+    print("✅ Successfully inserted records.")
+    print("📦 Upload response:", response)
 except Exception as e:
     print("❌ Failed to insert data into Supabase:", e)
 
