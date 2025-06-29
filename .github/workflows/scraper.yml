@@ -2,7 +2,8 @@ name: Scraper
 
 on:
   schedule:
-    - cron: "0 11,17,23,5 * * *"  # 3am, 9am, 3pm, 9pm PST (converted to UTC)
+    # Run once per day at midnight Pacific Time (08:00 UTC)
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 jobs:
