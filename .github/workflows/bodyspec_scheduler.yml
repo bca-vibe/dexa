@@ -3,7 +3,7 @@ name: BodySpec Appointment Scraper
 on:
   schedule:
     - cron: "0 11,17,23,5 * * *"  # 3am, 9am, 3pm, 9pm PST (converted to UTC)
-  workflow_dispatch:  # still allows manual run
+  workflow_dispatch:
 
 jobs:
   run-scraper:
