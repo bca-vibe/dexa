@@ -176,6 +176,18 @@ url = os.environ["SUPABASE_URL"]
 key = os.environ["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
+# Test Supabase URL to see if it works
+if not url:
+    print("❗ Supabase URL environment variable is not set.")
+else:
+    print(f"🔍 Testing Supabase URL: {url}")
+    try:
+        response = requests.get(url, timeout=10)
+        print(f"✅ GET {url} returned status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Failed to reach Supabase URL: {e}")
+
+# Try pushing results to Supabase
 try:
     response = supabase.table("Appointments").insert(records).execute()
     print("✅ Successfully inserted records.")
