@@ -27,4 +27,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: 🏃 Run scraper script
-        run: python bodyspec_appointment_tables_script.py
+        run: python bodyspec_appointment_table.py
