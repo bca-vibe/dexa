@@ -1,0 +1,30 @@
+name: BodySpec Appointment Scraper
+
+on:
+  schedule:
+    - cron: "0 11,17,23,5 * * *"  # 3am, 9am, 3pm, 9pm PST (converted to UTC)
+  workflow_dispatch:  # still allows manual run
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: 🏃 Run scraper script
+        run: python bodyspec_appointment_tables_script.py
