@@ -176,6 +176,17 @@ url = os.environ["SUPABASE_URL"]
 key = os.environ["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
+# Ensure we have the right environment variables
+if not url:
+    print("❗ SUPABASE_URL is not set or is empty.")
+else:
+    print(f"🔍 SUPABASE_URL is set (length: {len(url)})")
+
+if not key:
+    print("❗ SUPABASE_KEY is not set or is empty.")
+else:
+    print(f"🔍 SUPABASE_KEY is set (length: {len(key)})")
+
 # Test Supabase URL to see if it works
 if not url:
     print("❗ Supabase URL environment variable is not set.")
